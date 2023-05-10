@@ -10,88 +10,101 @@ import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
 public class SentenceCounter extends SentenceBaseListener {
-	/** Map from Antlr tree nodes to ASTs. */
-	private ParseTreeProperty<Integer> depths;
-	/** Number of terminal nodes. */
-	private int termCount;
-	/** Number of error nodes. */
-	private int errorCount;
 
-	public void process(String text) {
-		this.depths = new ParseTreeProperty<Integer>();
-		this.termCount = 0;
-		this.errorCount = 0;
-		Lexer lexer = new SentenceLexer(CharStreams.fromString(text));
-		SentenceParser parser = new SentenceParser(new CommonTokenStream(lexer));
-		ParseTree tree = parser.sentence();
-		new ParseTreeWalker().walk(this, tree);
-		System.out.printf("Results for '%s':%n", text);
-		System.out.printf("Parse tree: %s%n", tree.toStringTree(parser));
-		System.out.printf("Tree depth: %d%n", getDepth(tree));
-		System.out.printf("Terminals:  %d%n", this.termCount);
-		System.out.printf("Errors:     %d%n%n", this.errorCount);
-	}
+    /**
+     * Map from Antlr tree nodes to ASTs.
+     */
+    private ParseTreeProperty<Integer> depths;
 
-	@Override
-	public void exitSentence(SentenceParser.SentenceContext ctx) {
-		computeDepth(ctx);
-	}
+    /**
+     * Number of terminal nodes.
+     */
+    private int termCount;
 
-	@Override
-	public void exitSubject(SentenceParser.SubjectContext ctx) {
-		computeDepth(ctx);
-	}
+    /**
+     * Number of error nodes.
+     */
+    private int errorCount;
 
-	@Override
-	public void exitModifier(SentenceParser.ModifierContext ctx) {
-		computeDepth(ctx);
-	}
+    public void process(String text) {
+        this.depths = new ParseTreeProperty<Integer>();
+        this.termCount = 0;
+        this.errorCount = 0;
+        Lexer lexer = new SentenceLexer(CharStreams.fromString(text));
+        SentenceParser parser = new SentenceParser(new CommonTokenStream(lexer));
+        ParseTree tree = parser.sentence();
+        new ParseTreeWalker().walk(this, tree);
+        System.out.printf("Results for '%s':%n", text);
+        System.out.printf("Parse tree: %s%n", tree.toStringTree(parser));
+        System.out.printf("Tree depth: %d%n", getDepth(tree));
+        System.out.printf("Terminals:  %d%n", this.termCount);
+        System.out.printf("Errors:     %d%n%n", this.errorCount);
+    }
 
-	@Override
-	public void exitObject(SentenceParser.ObjectContext ctx) {
-		computeDepth(ctx);
-	}
+    @Override
+    public void exitSentence(SentenceParser.SentenceContext ctx) {
+        computeDepth(ctx);
+    }
 
-	@Override
-	public void visitTerminal(TerminalNode node) {
-		setDepth(node, 1);
-		this.termCount++;
-	}
+    @Override
+    public void exitSubject(SentenceParser.SubjectContext ctx) {
+        computeDepth(ctx);
+    }
 
-	@Override
-	public void visitErrorNode(ErrorNode node) {
-		setDepth(node, 1);
-		this.errorCount++;
-	}
+    @Override
+    public void exitModifier(SentenceParser.ModifierContext ctx) {
+        computeDepth(ctx);
+    }
 
-	/**
-	 * Adds the sub-ASTs corresponding to the children of a given 
-	 * Antlr tree to an AST, and sets the AST property of the tree.
-	 */
-	private void computeDepth(ParseTree tree) {
-		int depth = 1;
-		for (int i = 0; i < tree.getChildCount(); i++) {
-			depth = Math.max(depth, getDepth(tree.getChild(i)) + 1);
-		}
-		setDepth(tree, depth);
-	}
+    @Override
+    public void exitObject(SentenceParser.ObjectContext ctx) {
+        computeDepth(ctx);
+    }
 
-	/** Returns the stored depth of a given Antlr parse tree. */
-	private Integer getDepth(ParseTree node) {
-		return this.depths.get(node);
-	}
+    @Override
+    public void visitTerminal(TerminalNode node) {
+        setDepth(node, 1);
+        this.termCount++;
+    }
 
-	/** Stores the depth of a given Antlr parse tree. */
-	private void setDepth(ParseTree node, Integer ast) {
-		this.depths.put(node, ast);
-	}
+    @Override
+    public void visitErrorNode(ErrorNode node) {
+        setDepth(node, 1);
+        this.errorCount++;
+    }
 
-	public static void main(String[] args) {
-		SentenceCounter counter = new SentenceCounter();
-		counter.process("students love students.");
-		counter.process("all undergraduate students love all compilers.");
-		counter.process("all smart students love all compilers");
-		counter.process("undergraduate students love love.");
-		counter.process("all undergraduate students all compilers.");
-	}
+    /**
+     * Adds the sub-ASTs corresponding to the children of a given
+     * Antlr tree to an AST, and sets the AST property of the tree.
+     */
+    private void computeDepth(ParseTree tree) {
+        int depth = 1;
+        for (int i = 0; i < tree.getChildCount(); i++) {
+            depth = Math.max(depth, getDepth(tree.getChild(i)) + 1);
+        }
+        setDepth(tree, depth);
+    }
+
+    /**
+     * Returns the stored depth of a given Antlr parse tree.
+     */
+    private Integer getDepth(ParseTree node) {
+        return this.depths.get(node);
+    }
+
+    /**
+     * Stores the depth of a given Antlr parse tree.
+     */
+    private void setDepth(ParseTree node, Integer ast) {
+        this.depths.put(node, ast);
+    }
+
+    public static void main(String[] args) {
+        SentenceCounter counter = new SentenceCounter();
+        counter.process("students love students.");
+        counter.process("all undergraduate students love all compilers.");
+        counter.process("all smart students love all compilers");
+        counter.process("undergraduate students love love.");
+        counter.process("all undergraduate students all compilers.");
+    }
 }

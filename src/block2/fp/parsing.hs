@@ -44,9 +44,9 @@ parse xs = parseExpr $ tokenize xs
 
 parseExpr :: [Token] -> BinTree Token Token
 parseExpr xs
-    | length after == 0 = term
-    | head after == Add = Node Add term (parseExpr $ tail after)
-    where (term, after) = parseTerm xs
+    | length afterTerm == 0 = term
+    | head afterTerm == Add = Node Add term (parseExpr $ tail afterTerm)
+    where (term, afterTerm) = parseTerm xs
 
 parseTerm :: [Token] -> (BinTree Token Token, [Token])
 parseTerm xs
@@ -60,8 +60,8 @@ parseTerm xs
 parseFactor :: [Token] -> (BinTree Token Token, [Token])
 parseFactor ((Num x):xs) = (Leaf (Num x), xs)
 parseFactor ((Id x):xs) = (Leaf (Id x), xs)
-parseFactor (Open:xs) = (parseExpr expr, tail after)
-    where (expr, after) = break (==Close) xs
+parseFactor (Open:xs) = (parseExpr expr, tail afterExpr)
+    where (expr, afterExpr) = break (==Close) xs
 
 
 -- Evaluating string value

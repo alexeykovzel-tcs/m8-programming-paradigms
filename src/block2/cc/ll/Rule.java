@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package block2.cc.ll;
 
@@ -11,38 +11,50 @@ import block2.cc.Symbol;
 
 /**
  * Rule in a grammar.
- * A rule consists of a left hand side (LHS, a {@link NonTerm}) 
+ * A rule consists of a left hand side (LHS, a {@link NonTerm})
  * and a right hand side (RHS, a string of {@link Symbol}s).
+ *
  * @author Arend Rensink
  */
 public class Rule {
-	/** Constructs a rule from a given lhs and rhs. */
-	public Rule(NonTerm lhs, List<Symbol> rhs) {
-		this.lhs = lhs;
-		this.rhs = rhs;
-	}
 
-	/** Constructs a rule from a given lhs and rhs. */
-	public Rule(NonTerm lhs, Symbol... rhs) {
-		this(lhs, Arrays.asList(rhs));
-	}
+    /**
+     * Constructs a rule from a given lhs and rhs.
+     */
+    public Rule(NonTerm lhs, List<Symbol> rhs) {
+        this.lhs = lhs;
+        this.rhs = rhs;
+    }
 
-	/** Returns the LHS of this rule. */
-	public NonTerm getLHS() {
-		return this.lhs;
-	}
-	private final NonTerm lhs;
+    /**
+     * Constructs a rule from a given lhs and rhs.
+     */
+    public Rule(NonTerm lhs, Symbol... rhs) {
+        this(lhs, Arrays.asList(rhs));
+    }
 
-	/** Returns the right hand side of this rule.
-	 * @return the rhs of this rule (which may be an empty list)
-	 */
-	public List<Symbol> getRHS() {
-		return this.rhs;
-	}
-	private final List<Symbol> rhs;
+    /**
+     * Returns the LHS of this rule.
+     */
+    public NonTerm getLHS() {
+        return this.lhs;
+    }
 
-	@Override
-	public String toString() {
-		return this.lhs.getName() + "->" + this.rhs;
-	}
+    private final NonTerm lhs;
+
+    /**
+     * Returns the right hand side of this rule.
+     *
+     * @return the rhs of this rule (which may be an empty list)
+     */
+    public List<Symbol> getRHS() {
+        return this.rhs;
+    }
+
+    private final List<Symbol> rhs;
+
+    @Override
+    public String toString() {
+        return this.lhs.getName() + "->" + this.rhs;
+    }
 }
