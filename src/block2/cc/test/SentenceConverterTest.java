@@ -35,15 +35,13 @@ public class SentenceConverterTest {
     private void fails(String text) {
         try {
             this.parser1.parse(scan(text));
-            fail(String.format("Parsing '%s' should have failed but didn't",
-                    text));
+            fail(String.format("Parsing '%s' should have failed but didn't", text));
         } catch (ParseException e) {
             // success
         }
         try {
             this.parser2.parse(scan(text));
-            fail(String.format("Parsing '%s' should have failed but didn't",
-                    text));
+            fail(String.format("Parsing '%s' should have failed but didn't", text));
         } catch (ParseException e) {
             // success
         }

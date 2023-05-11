@@ -142,7 +142,7 @@ public class SentenceParser implements Parser {
                 CharStream stream = CharStreams.fromString(text);
                 Lexer lexer = new Sentence(stream);
                 try {
-                    System.out.printf("Parse tree: %n%s%n",
+                    System.out.printf("\nParse tree: %n%s%n",
                             new SentenceParser().parse(lexer));
                 } catch (ParseException e) {
                     e.printStackTrace();

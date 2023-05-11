@@ -25,19 +25,19 @@ public class LLCalculatorImpl implements LLCalculator {
         for (Term term : grammar.getTerminals()) {
             first.put(term, Set.of(term));
         }
-        // Update 'first' until it becomes stable
-        boolean stable = false;
-        while (!stable) {
-            stable = true;
+        // Update 'first' until there are no more changes
+        boolean changing = true;
+        while (changing) {
+            changing = false;
             for (NonTerm nonTerm : grammar.getNonTerminals()) {
-                boolean noChanges = true;
+                boolean changed = false;
 
                 // Update 'first' from each non-terminal rule
                 for (Rule rule : grammar.getRules(nonTerm)) {
                     Set<Term> ruleFirst = first.get(rule.getRHS().get(0));
-                    noChanges = noChanges && !first.get(nonTerm).addAll(ruleFirst);
+                    changed = changed || first.get(nonTerm).addAll(ruleFirst);
                 }
-                stable = stable && noChanges;
+                changing = changing || changed;
             }
         }
         return first;
@@ -45,76 +45,45 @@ public class LLCalculatorImpl implements LLCalculator {
 
     @Override
     public Map<NonTerm, Set<Term>> getFollow() {
-        Map<Symbol, Set<Term>> firstTermMap = getFirst();
+        Map<Symbol, Set<Term>> first = getFirst();
+        Map<NonTerm, Set<Term>> follow = new HashMap<>();
 
-        // Find symbols that follow directly after the terminal
-        Map<NonTerm, Set<NonTerm>> followNonTermMap = new HashMap<>();
-        Map<NonTerm, Set<Term>> followTermMap = new HashMap<>();
-        initDirectFollow(followTermMap, followNonTermMap);
-
-        // Add 'end-of-file' as a follow symbol for the grammar start
-        followTermMap.get(grammar.getStart()).add(Symbol.EOF);
-
-        // Update 'follow' until it becomes stable
-        boolean stable = false;
-        while (!stable) {
-            stable = true;
-
-            for (NonTerm nonTerm : followNonTermMap.keySet()) {
-                boolean noChanges = true;
-
-                // Add 'follow' terminals from following non-terminals
-                for (NonTerm followNonTerm : followNonTermMap.get(nonTerm)) {
-                    Set<Term> followTerms = firstTermMap.get(followNonTerm);
-                    noChanges = noChanges && !followTermMap.get(nonTerm).addAll(followTerms);
-                }
-                stable = stable && noChanges;
-            }
-        }
-        return followTermMap;
-    }
-
-    private void initDirectFollow(Map<NonTerm, Set<Term>> followTermMap,
-                                  Map<NonTerm, Set<NonTerm>> followNonTermMap) {
-
+        // Assign empty sets to each non-terminal
         for (NonTerm nonTerm : grammar.getNonTerminals()) {
+            follow.put(nonTerm, new HashSet<>());
+        }
+        // Add 'end-of-file' to the start symbol
+        follow.get(grammar.getStart()).add(Symbol.EOF);
 
-            // Non-terminals that follow after the symbol
-            Set<NonTerm> followNonTerms = new HashSet<>();
-            followNonTermMap.put(nonTerm, followNonTerms);
-
-            // Terminals that follow after the symbol
-            Set<Term> followTerms = new HashSet<>();
-            followTermMap.put(nonTerm, followTerms);
-
-            // Find symbol instances in the grammar rules
+        // Update 'follow' until there are no more changes
+        boolean changing = true;
+        while (changing) {
+            changing = false;
             for (Rule rule : grammar.getRules()) {
+                Set<Term> trailer = follow.get(rule.getLHS());
                 List<Symbol> ruleSymbols = rule.getRHS();
-                NonTerm lhs = rule.getLHS();
-                if (lhs.equals(nonTerm)) {
-                    continue;
-                }
-                for (int i = 0; i < ruleSymbols.size(); i++) {
-                    if (ruleSymbols.get(i).equals(nonTerm)) {
-                        boolean isLastInRule = i + 1 == ruleSymbols.size();
 
-                        if (isLastInRule) {
-                            // If symbol is last in the rule, take 'follow'
-                            // of the left-hand-side (LHS)
-                            followNonTerms.add(lhs);
+                // iterate rule symbols from the end
+                for (int i = ruleSymbols.size() - 1; i >= 0; i--) {
+                    Symbol symbol = ruleSymbols.get(i);
+
+                    if (symbol instanceof NonTerm) {
+                        changing = changing || follow.get(symbol).addAll(trailer);
+                        Set<Term> symbolFirst = first.get(symbol);
+
+                        if (symbolFirst.contains(Symbol.EMPTY)) {
+                            trailer.addAll(symbolFirst);
+                            trailer.remove(Symbol.EMPTY);
                         } else {
-                            // otherwise, take 'follow' of the next symbol
-                            Symbol followSymbol = ruleSymbols.get(i + 1);
-                            if (followSymbol instanceof Term) {
-                                followTerms.add((Term) followSymbol);
-                            } else {
-                                followNonTerms.add(lhs);
-                            }
+                            trailer = first.get(symbol);
                         }
+                    } else  {
+                        trailer = first.get(symbol);
                     }
                 }
             }
         }
+        return follow;
     }
 
     @Override
@@ -136,8 +105,6 @@ public class LLCalculatorImpl implements LLCalculator {
                     break;
                 }
             }
-            // If all symbols from the rule can be empty,
-            // then we should take 'follow'
             if (takeFollow) {
                 ruleFirst.addAll(follow.get(rule.getLHS()));
             }
@@ -158,8 +125,7 @@ public class LLCalculatorImpl implements LLCalculator {
             for (Rule rule : grammar.getRules(nonTerm)) {
                 for (Term term : firstPlus.get(rule)) {
 
-                    // If such terminal was already checked,
-                    // then it is not LL(1)
+                    // If there is overlapping, then it is not LL(1)
                     if (checkedTerms.contains(term)) {
                         return false;
                     }
