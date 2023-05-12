@@ -54,14 +54,17 @@ parseExpr =
     parseDec 
     <|> parseIf
     <|> ((\a b -> foldl Add a b) 
-        <$> parseTerm <*> (many $ symbol "+" *> parseTerm))
+        <$> parseTerm 
+        <*> (many $ symbol "+" *> parseTerm))
     <?> "expression"
 
 parseFactor :: Parser Expr
 parseFactor = 
     (Const <$> num) 
     <|> (parens parseExpr)
-    <|> try(FunCall <$> identifier <*> (parens parseExpr)) 
+    <|> try(FunCall 
+            <$> identifier 
+            <*> (parens parseExpr)) 
     <|> (Var <$> identifier) 
     <?> "id or number"
 
@@ -98,11 +101,11 @@ parseIf = If
 -- Exercise 5
 
 data FunDef 
-    = Func String String Expr
+    = Function String String Expr
     deriving Show
 
 parseFun :: Parser FunDef
-parseFun = Func 
+parseFun = Function 
     <$> (symbol "function" *> identifier)
         <*> identifier
         <*> (symbol "=" *> parseExpr)
@@ -114,9 +117,25 @@ fib = parser parseFun
 
 -- Exercise 6
 
--- evalCond :: Cond ->
+data Context = Context {
+    main :: FunDef,
+    var :: Integer
+}
 
--- evalExpr :: Expr -> 
+evalCond :: Context -> Cond -> Bool
+evalCond ctx (Eq x y) = (eval ctx x) == (eval ctx y)
+
+eval :: Context -> Expr -> Integer
+eval ctx (Const x)      = x
+eval ctx (Var x)        = var ctx
+eval ctx (Mult x y)     = (eval ctx x) * (eval ctx y)
+eval ctx (Add x y)      = (eval ctx x) + (eval ctx y)
+eval ctx (Dec x)        = (eval ctx x) - 1
+eval ctx (FunCall _ x)  = evalFun (main ctx) (eval ctx x)
+eval ctx (If cond x y)  = if (evalCond ctx cond) 
+                            then (eval ctx x) 
+                            else (eval ctx y)
 
 evalFun :: FunDef -> Integer -> Integer
-evalFun f x = 0
+evalFun main@(Function _ _ expr) var = 
+    eval (Context main var) expr

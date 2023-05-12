@@ -1,3 +1,4 @@
+
 import Test.QuickCheck
 import Data.Char
 
