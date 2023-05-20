@@ -8,7 +8,7 @@ import net.jcip.annotations.NotThreadSafe;
 @NotThreadSafe
 public class Node<T> {
 	/** The value of backed by this node. */
-	private T item;
+	private final T item;
 
 	/** The next node of the list. */
 	private Node<T> next;

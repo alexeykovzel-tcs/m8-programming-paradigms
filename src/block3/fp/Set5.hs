@@ -62,7 +62,7 @@ parseFactor :: Parser Expr
 parseFactor = 
     (Const <$> num) 
     <|> (parens parseExpr)
-    <|> try(FunCall 
+    <|> try (FunCall 
             <$> identifier 
             <*> (parens parseExpr)) 
     <|> (Var <$> identifier) 
@@ -71,7 +71,8 @@ parseFactor =
 parseTerm :: Parser Expr
 parseTerm = 
     (\a b -> foldl Mult a b) 
-    <$> parseFactor <*> (many $ symbol "*" *> parseFactor)
+    <$> parseFactor 
+        <*> (many $ symbol "*" *> parseFactor)
     <?> "term (e.g. 2*3*5)"
 
 

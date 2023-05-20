@@ -3,11 +3,6 @@ package block3.cc.antlr;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeProperty;
 
-import pp.block3.cc.antlr.CalcParser.NumberContext;
-import pp.block3.cc.antlr.CalcParser.ParContext;
-import pp.block3.cc.antlr.CalcParser.PlusContext;
-import pp.block3.cc.antlr.CalcParser.TimesContext;
-
 public class Calculator extends CalcBaseListener {
 	/** Map storing the val attribute for all parse tree nodes. */
 	private ParseTreeProperty<Integer> vals;
@@ -18,22 +13,22 @@ public class Calculator extends CalcBaseListener {
 	}
 
 	@Override
-	public void exitPar(ParContext ctx) {
+	public void exitPar(CalcParser.ParContext ctx) {
 		set(ctx, val(ctx.expr()));
 	}
 
 	@Override
-	public void exitNumber(NumberContext ctx) {
+	public void exitNumber(CalcParser.NumberContext ctx) {
 		set(ctx, Integer.parseInt(ctx.NUMBER().getText()));
 	}
 
 	@Override
-	public void exitTimes(TimesContext ctx) {
+	public void exitTimes(CalcParser.TimesContext ctx) {
 		set(ctx, val(ctx.expr(0)) * val(ctx.expr(1)));
 	}
 
 	@Override
-	public void exitPlus(PlusContext ctx) {
+	public void exitPlus(CalcParser.PlusContext ctx) {
 		set(ctx, val(ctx.expr(0)) + val(ctx.expr(1)));
 	}
 
