@@ -10,14 +10,10 @@ import FPPrac.Trees
 {-         PROCESSOR        -}
 {- ======================== -}
 
-type Stack = [Int]
-
-type Heap = [Int]
-
-
-type Memory = (Int, Int, Heap, Stack)
-
 data Tick = Tick
+
+-- Program counter, Stack pointer, Heap, Stack 
+type Memory = (Int, Int, [Int], [Int])
 
 data Op = Add | Mul | Sub
     deriving (Show, Generic, ToRoseTree)
@@ -43,22 +39,24 @@ alu op = case op of
 core :: [Instr] -> Memory -> Tick -> Memory
 core instr (pc, sp, heap, stack) tick = case instr!!pc of
 
-    -- Pushes a constant value onto the stack
+    -- Push constant value onto the stack
     PushConst x 
         -> (pc + 1, sp + 1, heap, stack <~ (sp, x))
 
-    -- Fetches a value from the heap and pushes it onto the stack
+    -- Fetch value from the heap under the given address
+    -- and push it onto the stack
     PushAddr addr   
         -> (pc + 1, sp + 1, heap, stack <~ (sp, heap!!addr)) 
 
-    -- Pops a value from the stack and stores it in the heap
+    -- Pop value from the stack and store it in the heap
+    -- under the given address
     Store addr      
         -> (pc + 1, sp - 1, heap <~ (addr, x), stack)
             where 
                 x = stack!!(sp - 1)
 
-    -- Performs a calculation on the top two values of the stack, 
-    -- then pushes the result back onto the stack
+    -- Perform calculation with the last two stack values, 
+    -- then push the result back onto the stack
     Calc op         
         -> (pc + 1, sp - 1, heap, stack <~ (sp - 2, result))
             where 
@@ -66,25 +64,26 @@ core instr (pc, sp, heap, stack) tick = case instr!!pc of
                 x = stack!!(sp - 2)
                 y = stack!!(sp - 1)
     
-    -- Pushes the current program counter on the stack
+    -- Push the current program counter onto the stack
     PushPC
         -> (pc + 1, sp + 1, heap, stack <~ (sp, pc + 1))
 
-    -- Puts pc back to the beginning of the cycle,
-    -- or end the cycle if no iterations left
+    -- Put program counter to the beginning of the cycle,
+    -- if there are any iterations left, otherwise 
+    -- continue execution
     EndRep  | i == 0    -> (pc + 1, sp - 2, heap, stack)
             | otherwise -> (pcBack + 1, sp, heap, stack <~ (sp - 1, i - 1))
             where 
                 pcBack  = stack!!(sp - 2)
                 i       = stack!!(sp - 1)
 
-    -- Terminates the program
+    -- Terminate the program
     EndProg 
         -> (-1, sp, heap, stack)
 
 
 {- ======================== -}
-{-      CODE GENERATION     -}
+{-          CODE GEN        -}
 {- ======================== -}
 
 type Script = [Statement]
@@ -137,16 +136,6 @@ testSum x = [
         Assign 0 (BinExpr Add (Var 0) (Const 1)) 
     ]]
 
-testExpr :: Script
-testExpr = [Exec expr]
-    where expr = BinExpr Mul 
-            (BinExpr Add 
-                (BinExpr Mul (Const 2) (Const 10))
-                (BinExpr Mul 
-                    (Const 3) 
-                    (BinExpr Add (Const 4) (Const 11))))
-            (BinExpr Add (Const 12) (Const 5))
-
 debug :: Script -> IO()
 debug script 
     = putStr 
@@ -158,5 +147,5 @@ debug script
             memory  = (0, 0, heap, stack)
             heap    = replicate 8 0
             stack   = replicate 8 0
-            instr   = (core $ compile script)
-            clock   = (repeat Tick)
+            instr   = core $ compile script
+            clock   = repeat Tick
