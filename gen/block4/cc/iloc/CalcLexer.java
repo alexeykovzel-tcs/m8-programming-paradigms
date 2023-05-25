@@ -1,5 +1,5 @@
-// Generated from /home/alexeykovzel/Projects/tcs/m8-programming-paradigms/src/block3/cc/antlr/CalcVocab.g4 by ANTLR 4.12.0
-package pp.block3.cc.antlr;
+// Generated from /home/alexeykovzel/Projects/tcs/m8-programming-paradigms/src/block4/cc/iloc/Calc.g4 by ANTLR 4.12.0
+package block4.cc.iloc;
 import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.Token;
@@ -10,7 +10,7 @@ import org.antlr.v4.runtime.dfa.DFA;
 import org.antlr.v4.runtime.misc.*;
 
 @SuppressWarnings({"all", "warnings", "unchecked", "unused", "cast", "CheckReturnValue"})
-public class CalcVocab extends Lexer {
+public class CalcLexer extends Lexer {
 	static { RuntimeMetaData.checkVersion("4.12.0", RuntimeMetaData.VERSION); }
 
 	protected static final DFA[] _decisionToDFA;
@@ -79,13 +79,13 @@ public class CalcVocab extends Lexer {
 	}
 
 
-	public CalcVocab(CharStream input) {
+	public CalcLexer(CharStream input) {
 		super(input);
 		_interp = new LexerATNSimulator(this,_ATN,_decisionToDFA,_sharedContextCache);
 	}
 
 	@Override
-	public String getGrammarFileName() { return "CalcVocab.g4"; }
+	public String getGrammarFileName() { return "Calc.g4"; }
 
 	@Override
 	public String[] getRuleNames() { return ruleNames; }

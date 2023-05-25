@@ -29,6 +29,18 @@ public class CalcBaseListener implements CalcListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterMinus(CalcParser.MinusContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitMinus(CalcParser.MinusContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterNumber(CalcParser.NumberContext ctx) { }
 	/**
 	 * {@inheritDoc}

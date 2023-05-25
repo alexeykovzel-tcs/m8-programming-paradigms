@@ -9,13 +9,27 @@ import CalcVocab;
 }
 
 expr returns [ int val ]
+
+     // expr * expr
      : e0=expr TIMES e1=expr
        { $val = $e0.val * $e1.val; }
-     | e0=expr PLUS e1=expr
+
+     // expr + expr
+     |  e0=expr PLUS e1=expr
        { $val = $e0.val + $e1.val; }
-     | LPAR e=expr RPAR
-       { $val = $e.val; }
-     | { System.out.println("Evaluating NUMBER"); }
-       NUMBER
-       { $val = getValue($NUMBER.text); }
+
+     // -expr
+     |  { System.out.println("Evaluating MINUS"); }
+        MINUS e=expr
+        { $val = - $e.val; }
+
+     // ( expr )
+     |  { System.out.println("Evaluating PARENS"); }
+        LPAR e=expr RPAR
+        { $val = $e.val; }
+
+     // Number
+     |  { System.out.println("Evaluating NUMBER"); }
+        NUMBER
+        { $val = getValue($NUMBER.text); }
      ;

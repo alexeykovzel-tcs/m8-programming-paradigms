@@ -1,32 +1,51 @@
 package block3.cp.barriers;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.*;
+
 /**
- * Abstract class implementing the
- * map-reduce framework. To be completed
- * by the student.
+ * Abstract class implementing the map-reduce framework.
  */
 public abstract class MapReduceBase<I, O, R> {
-	/**
-	 * List for storing the results of all the
-	 * map tasks
-	 */
-	private ArrayList<O> mapOutput;
-	protected abstract O map(I in);
-	protected abstract R reduce(ArrayList<O> in);
+    private final List<I> input;
+    private final List<O> output;
+    private final CountDownLatch latch;
 
-	private class RunMap implements Runnable {
-		@Override
-		public void run() {
-			// TODO process one element using map-function and store result in mapOutput
-		}
-	}
-	/**
-	 * Runs the map-reduce operation
-	 * @param values the values to operate on
-	 * @return the result of the map-reduce operation
-	 */
-	protected R run(ArrayList <I> values) {
-		return null; // TODO spawn Runnables, wait for completion, and do reduce-step
-	}
+    protected MapReduceBase(List<I> input) {
+        this.input = input;
+        output = Collections.synchronizedList(new ArrayList<>(input.size()));
+        latch = new CountDownLatch(input.size());
+    }
+
+    protected abstract O map(I in);
+
+    protected abstract R reduce(List<O> in);
+
+    protected R run() {
+        for (I value : input) {
+            new Thread(new RunMap(value)).start();
+        }
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        return reduce(output);
+    }
+
+    private class RunMap implements Runnable {
+        private final I value;
+
+        public RunMap(I value) {
+            this.value = value;
+        }
+
+        @Override
+        public void run() {
+            output.add(map(value));
+            latch.countDown();
+        }
+    }
 }

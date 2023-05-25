@@ -1,4 +1,4 @@
-module Set5 where
+module Set5 (eval) where
 
 import Data.List
 import Data.Functor
@@ -111,32 +111,29 @@ parseFun = Function
         <*> identifier
         <*> (symbol "=" *> parseExpr)
 
-fib :: FunDef
-fib = parser parseFun
- "function fib x = if x == 0 then 1 else (if x == 1 then 1 else fib(dec x)+fib(dec dec x))"
-
 
 -- Exercise 6
 
-data Context = Context {
-    main :: FunDef,
-    var :: Integer
-}
+data Context = Context { main :: FunDef, var :: Integer }
 
 evalCond :: Context -> Cond -> Bool
-evalCond ctx (Eq x y) = (eval ctx x) == (eval ctx y)
+evalCond ctx (Eq x y) = (evalExpr ctx x) == (evalExpr ctx y)
 
-eval :: Context -> Expr -> Integer
-eval ctx (Const x)      = x
-eval ctx (Var x)        = var ctx
-eval ctx (Mult x y)     = (eval ctx x) * (eval ctx y)
-eval ctx (Add x y)      = (eval ctx x) + (eval ctx y)
-eval ctx (Dec x)        = (eval ctx x) - 1
-eval ctx (FunCall _ x)  = evalFun (main ctx) (eval ctx x)
-eval ctx (If cond x y)  = if (evalCond ctx cond) 
-                            then (eval ctx x) 
-                            else (eval ctx y)
+evalExpr :: Context -> Expr -> Integer
+evalExpr ctx (Const x)      = x
+evalExpr ctx (Var x)        = var ctx
+evalExpr ctx (Mult x y)     = (evalExpr ctx x) * (evalExpr ctx y)
+evalExpr ctx (Add x y)      = (evalExpr ctx x) + (evalExpr ctx y)
+evalExpr ctx (Dec x)        = (evalExpr ctx x) - 1
+evalExpr ctx (FunCall _ x)  = evalFun (main ctx) (evalExpr ctx x)
+evalExpr ctx (If cond x y)  = if (evalCond ctx cond) 
+                            then (evalExpr ctx x) 
+                            else (evalExpr ctx y)
 
 evalFun :: FunDef -> Integer -> Integer
 evalFun main@(Function _ _ expr) var = 
-    eval (Context main var) expr
+    evalExpr (Context main var) expr
+
+eval :: String -> Integer -> Integer
+eval code var = evalFun fun var
+    where fun = parser parseFun code 

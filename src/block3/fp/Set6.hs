@@ -1,8 +1,11 @@
 module Set6 where
 
 import Data.Foldable
+import Test.QuickCheck
 import Data.Monoid
 import Text.Read
+import Data.Char
+import Set5
 
 
 -- Exercise 7
@@ -13,6 +16,7 @@ addstr s1 s2 = show <$> result
         x = readMaybe s1 :: Maybe Int
         y = readMaybe s2 :: Maybe Int
         result = (+) <$> x <*> y
+
 
 -- Exercise 8
 
@@ -38,6 +42,7 @@ myzipWith f xs ys = f <$> xs <*> ys
 myzipWith3 :: (a -> b -> c -> d) -> MyList a -> MyList b -> MyList c -> MyList d
 myzipWith3 f xs ys zs = f <$> xs <*> ys <*> zs
 
+
 -- Exercise 9
 
 f :: IO Integer
@@ -46,11 +51,13 @@ f = (+) <$> x <*> y
         x = read <$> getLine :: IO Integer
         y = read <$> getLine :: IO Integer
 
+
 -- Exercise 10
 
 justs :: [Maybe a] -> Maybe [a]
 justs [] = Just []
 justs (x:xs) = (:) <$> x <*> justs xs
+
 
 -- Exercise 11
 
@@ -88,15 +95,29 @@ instance Applicative Parser where
                       (z, zs) <- runParser p2 ys])
 
 parseAB :: Parser (Char, Char)
-parseAB = ( ,) <$> (char 'a') <*> (char 'b')
+parseAB = (,) <$> (char 'a') <*> (char 'b')
 
 parseString :: String -> Parser String
 parseString [] = P (\ys -> [([], ys)]) 
 parseString (x:xs) = (:) <$> char x <*> parseString xs
 
+
 -- Exercise 12
 
---fact = parserFun "function factorial x = if x == 0 then 1 else factorial(dec x) * x"
+fibonacci :: IO (Integer -> Integer)
+fibonacci = eval <$> readFile "fib.txt"
+
+fib5 :: IO Integer
+fib5 = fibonacci <*> pure 5
+
+fibs :: IO [Integer]
+fibs = (map <$> fibonacci ) <*> pure [0..]
 
 -- Exercise 13
 
+data A 
+    = R [Int]
+    | Q Int Char deriving Show
+
+instance Arbitrary A where
+    

@@ -45,7 +45,7 @@ public class BasicLockTest {
     TODO replace null by a constructor call to your
     BasicLock implementation
     */
-    private final BasicLock lock = new DekkerLock();
+    private final BasicLock lock = new CompareAndSetLock();
 
     @Before
     public void before() {
