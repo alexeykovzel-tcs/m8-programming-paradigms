@@ -47,6 +47,16 @@ public class Graph implements Iterable<Node> {
         return this.nodes;
     }
 
+    public Node getLastNode() {
+        Node last = null;
+        for (Node node : this) {
+            if (last == null || node.getNr() > last.getNr()) {
+                last = node;
+            }
+        }
+        return last;
+    }
+
     /** Returns an iterator over the nodes in this graph. */
     @Override
     public Iterator<Node> iterator() {

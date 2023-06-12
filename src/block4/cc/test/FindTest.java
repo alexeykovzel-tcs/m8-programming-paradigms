@@ -7,16 +7,16 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 
-import block4.cc.iloc.Assembler;
-import block4.cc.iloc.Simulator;
-import block4.cc.iloc.eval.Machine;
-import block4.cc.iloc.model.Program;
-import block4.cc.iloc.parse.FormatException;
+import block4.cc.iloc.asm.Assembler;
+import block4.cc.iloc.asm.Simulator;
+import block4.cc.iloc.asm.eval.Machine;
+import block4.cc.iloc.asm.model.Program;
+import block4.cc.iloc.asm.parse.FormatException;
 import org.junit.Test;
 
 @SuppressWarnings("javadoc")
 public class FindTest {
-	private Assembler assembler = Assembler.instance();
+	private final Assembler assembler = Assembler.instance();
 	private final static boolean SHOW = true;
 
 	@Test(timeout = 1000)

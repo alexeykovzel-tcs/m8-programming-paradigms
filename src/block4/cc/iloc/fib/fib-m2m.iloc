@@ -1,0 +1,17 @@
+while:  loadI 1 => r_1
+        loadAI r_arp, @n => r_2
+        cmp_GT r_2, r_1 => r_1
+        cbr r_1 -> then, return
+
+then:   loadAI r_arp, @x => r_1
+        loadAI r_arp, @y => r_2
+        add r_1, r_2 => r_1
+        storeAI r_1 => r_arp, @z
+        storeAI r_2 => r_arp, @x
+        storeAI r_1 => r_arp, @y
+        loadAI r_arp, @n => r_1
+        addI r_1, -1 => r_1
+        storeAI r_1 => r_arp, @n
+        jumpI -> while
+
+return: nop

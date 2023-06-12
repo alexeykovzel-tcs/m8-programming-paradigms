@@ -2,6 +2,7 @@ package block4.cc.cfg;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 import block4.cc.ErrorListener;
 import org.antlr.v4.runtime.CharStream;
@@ -11,6 +12,8 @@ import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.TokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
+import org.antlr.v4.runtime.tree.ParseTreeProperty;
+import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
 /**
  * Template bottom-up CFG builder.
@@ -20,6 +23,9 @@ public class BottomUpCFGBuilder extends FragmentBaseListener {
      * The CFG being built.
      */
     private Graph graph;
+
+    private final ParseTreeProperty<Node> entries = new ParseTreeProperty<>();
+    private final ParseTreeProperty<Node> exists = new ParseTreeProperty<>();
 
     /**
      * Builds the CFG for a program contained in a given file.
@@ -55,23 +61,97 @@ public class BottomUpCFGBuilder extends FragmentBaseListener {
      * Builds the CFG for a program given as an ANTLR parse tree.
      */
     public Graph build(ParseTree tree) {
-        this.graph = new Graph();
-        // TODO Fill in
-        throw new UnsupportedOperationException("Fill in");
+        graph = new Graph();
+        new ParseTreeWalker().walk(this, tree);
+        return graph;
     }
 
     @Override
-    public void enterBreakStat(FragmentParser.BreakStatContext ctx) {
+    public void exitProgram(FragmentParser.ProgramContext ctx) {
+        chainStats(ctx.stat());
+    }
+
+    @Override
+    public void exitDecl(FragmentParser.DeclContext ctx) {
+        Node declBlock = addNode(ctx, "decl");
+        setEdges(ctx, declBlock, declBlock);
+    }
+
+    @Override
+    public void exitAssignStat(FragmentParser.AssignStatContext ctx) {
+        Node assignBlock = addNode(ctx, "assign");
+        setEdges(ctx, assignBlock, assignBlock);
+    }
+
+    @Override
+    public void exitWhileStat(FragmentParser.WhileStatContext ctx) {
+        Node whileBlock = addNode(ctx, "while");
+        whileBlock.addEdge(entries.get(ctx.stat()));
+        exists.get(ctx.stat()).addEdge(whileBlock);
+        setEdges(ctx, whileBlock, whileBlock);
+    }
+
+    @Override
+    public void exitIfStat(FragmentParser.IfStatContext ctx) {
+        Node ifBlock = addNode(ctx, "if");
+        Node fakeBlock = graph.addNode("after");
+
+        // if statement
+        var ifStat = ctx.stat().get(0);
+        ifBlock.addEdge(entries.get(ifStat));
+        exists.get(ifStat).addEdge(fakeBlock);
+
+        // else statement
+        if (ctx.stat().size() > 1) {
+            var elseStat = ctx.stat().get(1);
+            ifBlock.addEdge(entries.get(elseStat));
+            exists.get(elseStat).addEdge(fakeBlock);
+        } else {
+            ifBlock.addEdge(fakeBlock);
+        }
+        setEdges(ctx, ifBlock, fakeBlock);
+    }
+
+    @Override
+    public void exitBlockStat(FragmentParser.BlockStatContext ctx) {
+        List<FragmentParser.StatContext> stats = ctx.stat();
+        Node entry = entries.get(stats.get(0));
+        Node exit = exists.get(stats.get(stats.size() - 1));
+        setEdges(ctx, entry, exit);
+        chainStats(stats);
+    }
+
+    @Override
+    public void exitPrintStat(FragmentParser.PrintStatContext ctx) {
+        Node printBlock = addNode(ctx, "print");
+        setEdges(ctx, printBlock, printBlock);
+    }
+
+    @Override
+    public void exitBreakStat(FragmentParser.BreakStatContext ctx) {
         throw new IllegalArgumentException("Break not supported");
     }
 
     @Override
-    public void enterContStat(FragmentParser.ContStatContext ctx) {
+    public void exitContStat(FragmentParser.ContStatContext ctx) {
         throw new IllegalArgumentException("Continue not supported");
     }
 
+    private void chainStats(List<FragmentParser.StatContext> stats) {
+        for (int i = 0; i < stats.size() - 1; i++) {
+            Node node1 = exists.get(stats.get(i));
+            Node node2 = entries.get(stats.get(i + 1));
+            node1.addEdge(node2);
+        }
+    }
+
+    private void setEdges(ParseTree tree, Node entry, Node exit) {
+        entries.put(tree, entry);
+        exists.put(tree, exit);
+    }
+
     /**
-     * Adds a node to he CGF, based on a given parse tree node.
+     * Adds a node to the CGF, based on a given parse tree node.
      * Gives the CFG node a meaningful ID, consisting of line number and
      * a further indicator.
      */
